@@ -6,14 +6,17 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
+  "type": "commonjs",
   "dependencies": {
     "cookie-parser": "~1.4.4",
+    "cups-printer": "^0.2.0",
     "debug": "~2.6.9",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
     "nib": "^1.1.2",
+    "pdf-creator-node": "^2.3.5",
     "socket.io": "^4.4.0",
     "stylus": "^0.56.0"
   }

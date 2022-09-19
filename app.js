@@ -3,11 +3,14 @@
 const express      = require("express");
 const app          = express();
 const http         = require("http").Server(app);
-const io           = require("socket.io")(http);
+const io           = require("socket.io")(http, { cors: { origin: "*" }});
 const port         = process.env.PORT || 3700;
 const cors         = require("cors");
 const logger       = require("morgan");
 const cookieParser = require("cookie-parser");
+const pdf          = require("pdf-creator-node")
+
+const {Printer} = require("./src/plugins/cups-printer/dist/printer");
 
 app.use(cors());
 app.use(logger("dev"));
@@ -30,10 +33,46 @@ app.use(cookieParser());
 //   // app.post("/city"   , main.get_city);
 // });
 
+app.post("/sticker", async (req, res) => {
+  for (let index = 0; index < req.body.basket.length; index++) {
+    const product = req.body.basket[index];
+    const options = {
+      height: "1.5 in",
+      width: "2.5 in",
+      orientation: "horizontal",
+      border: "1mm"
+    }
+    const list_modifier = product.modifiers.map(_ => {
+      return `<div style="padding-left: 10px; font-size: 8px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
+    });
+
+    const doc = {
+      html: `
+        <div style="font-family: system-ui;">
+          <div style="font-family: system-ui; font-size: 10px;">${product.product_name}</div>
+          <div style="font-family: system-ui; font-size: 8px;">${product.variant.n} - ${product.option.n}</div>
+          <div>${list_modifier.join("")}</div>
+        </div>
+      `,
+      data: {},
+      path: "/home/the/Documents/assets/sticker.pdf",
+      type: ""
+    }
+
+    for (let _index = 0; _index < product.qty; _index++) {
+      await pdf.create(doc, options);
+
+      // const all = await Printer.all();
+      const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
+      await obj.print('/home/the/Documents/assets/sticker.pdf');
+    }
+  }
+})
+
 app.post("/push", (req, res) => {
   console.log("post ::", req.body);
 
-  io.to("" + req.body.store).emit("" + req.body.store, req.body);
+  io.to("tc-connect").emit("tc-connect", req.body);
 
   return res.send("sended");
 });
