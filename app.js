@@ -55,7 +55,7 @@ app.post("/sticker", async (req, res) => {
         </div>
       `,
       data: {},
-      path: "/home/the/Documents/assets/sticker.pdf",
+      path: "/home/posinfinite/Documents/assets/sticker.pdf",
       type: ""
     }
 
@@ -64,7 +64,7 @@ app.post("/sticker", async (req, res) => {
 
       // const all = await Printer.all();
       const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
-      await obj.print('/home/the/Documents/assets/sticker.pdf');
+      await obj.print('/home/posinfinite/Documents/assets/sticker.pdf');
     }
   }
 })
