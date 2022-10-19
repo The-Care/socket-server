@@ -38,19 +38,19 @@ app.post("/sticker", async (req, res) => {
     const product = req.body.basket[index];
     const options = {
       height: "1.5 in",
-      width: "2.5 in",
+      width: "2 in",
       orientation: "horizontal",
       border: "1mm"
     }
     const list_modifier = product.modifiers.map(_ => {
-      return `<div style="padding-left: 10px; font-size: 8px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
+      return `<div style="padding-left: 10px; font-size: 6px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
     });
 
     const doc = {
       html: `
         <div style="font-family: system-ui;">
-          <div style="font-family: system-ui; font-size: 10px;">${product.product_name}</div>
-          <div style="font-family: system-ui; font-size: 8px;">${product.variant.n} - ${product.option.n}</div>
+          <div style="font-family: system-ui; font-size: 8px;">${product.product_name}</div>
+          <div style="font-family: system-ui; font-size: 6px;">${product.variant.n} - ${product.option.n}</div>
           <div>${list_modifier.join("")}</div>
         </div>
       `,
