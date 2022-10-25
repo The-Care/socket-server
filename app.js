@@ -34,6 +34,12 @@ app.use(cookieParser());
 // });
 
 app.post("/sticker", async (req, res) => {
+  let total_qty = 0;
+
+  req.body.basket.forEach(item => {
+    total_qty += +item.qty;
+  });
+
   for (let index = 0; index < req.body.basket.length; index++) {
     const product = req.body.basket[index];
     const options = {
@@ -46,23 +52,26 @@ app.post("/sticker", async (req, res) => {
       return `<div style="padding-left: 10px; font-size: 6px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
     });
 
-    const doc = {
-      html: `
-        <div style="font-family: system-ui;">
-          <div style="font-family: system-ui; font-size: 8px;">${product.product_name}</div>
-          <div style="font-family: system-ui; font-size: 6px;">${product.variant.n} - ${product.option.n}</div>
-          <div>${list_modifier.join("")}</div>
-        </div>
-      `,
-      data: {},
-      path: "/home/posinfinite/Documents/assets/sticker.pdf",
-      type: ""
-    }
-
     for (let _index = 0; _index < product.qty; _index++) {
+      const doc = {
+        html: `
+          <div style="font-family: system-ui;">
+            <div style="font-size: 12px; font-weight: 600; padding-bottom: 2px;">${product.order_number}<div>
+            <div style="font-family: system-ui; font-size: 8px; font-weight: 500">${product.product_name}</div>
+            <div style="font-family: system-ui; font-size: 6px; font-weight: 500">${product.variant.n} - ${product.option.n}</div>
+            <div>${list_modifier.join("")}</div>
+  
+            <div style="font-size: 6px; position: fixed; bottom: 8px; right: 3px;">
+              <span>${index + _index + 1}</span> / <span>${total_qty}</span>
+            </div>
+          </div>
+        `,
+        data: {},
+        path: "/home/posinfinite/Documents/assets/sticker.pdf",
+        type: ""
+      }
       await pdf.create(doc, options);
 
-      // const all = await Printer.all();
       const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
       await obj.print('/home/posinfinite/Documents/assets/sticker.pdf');
     }
