@@ -37,8 +37,8 @@ app.post("/sticker", async (req, res) => {
   for (let index = 0; index < req.body.basket.length; index++) {
     const product = req.body.basket[index];
     const options = {
-      height: "1.5 in",
-      width: "2 in",
+      height: "1.2 in",
+      width: "1.5 in",
       orientation: "horizontal",
       border: "1mm"
     }
