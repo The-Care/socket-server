@@ -1,16 +1,16 @@
 "use strict";
 
-const express      = require("express");
-const app          = express();
-const http         = require("http").Server(app);
-const io           = require("socket.io")(http, { cors: { origin: "*" }});
-const port         = process.env.PORT || 3700;
-const cors         = require("cors");
-const logger       = require("morgan");
+const express = require("express");
+const app = express();
+const http = require("http").Server(app);
+const io = require("socket.io")(http, { cors: { origin: "*" } });
+const port = process.env.PORT || 3700;
+const cors = require("cors");
+const logger = require("morgan");
 const cookieParser = require("cookie-parser");
-const pdf          = require("pdf-creator-node")
+const pdf = require("pdf-creator-node")
 
-const {Printer} = require("./src/plugins/cups-printer/dist/printer");
+const { Printer } = require("./src/plugins/cups-printer/dist/printer");
 
 app.use(cors());
 app.use(logger("dev"));
@@ -33,57 +33,83 @@ app.use(cookieParser());
 //   // app.post("/city"   , main.get_city);
 // });
 
-app.post("/sticker", async (req, res) => {
-  let total_qty = 0;
+async function print_sticker(req) {
+  try {
+    let total_qty = 0;
 
-  req.body.basket.forEach(item => {
-    total_qty += +item.qty;
-  });
-
-  for (let index = 0; index < req.body.basket.length; index++) {
-    const product = req.body.basket[index];
-    const options = {
-      height: "1.2 in",
-      width: "1.5 in",
-      orientation: "horizontal",
-      border: "1mm"
-    }
-    const list_modifier = product.modifiers.map(_ => {
-      return `<div style="padding-left: 10px; font-size: 6px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
+    req.body.basket.forEach(item => {
+      total_qty += +item.qty;
     });
 
-    for (let _index = 0; _index < product.qty; _index++) {
-      const doc = {
-        html: `
+    for (let index = 0; index < req.body.basket.length; index++) {
+      const product = req.body.basket[index];
+      const options = {
+        height: "1.2 in",
+        width: "1.5 in",
+        orientation: "horizontal",
+        border: "1mm"
+      }
+      const list_modifier = product.modifiers.map(_ => {
+        return `<div style="padding-left: 10px; font-size: 4px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
+      });
+
+      for (let _index = 0; _index < product.qty; _index++) {
+        const doc = {
+          html: `
           <div style="font-family: system-ui;">
             <div style="font-size: 12px; font-weight: 600; padding-bottom: 2px;">${product.order_number}<div>
-            <div style="font-family: system-ui; font-size: 8px; font-weight: 500">${product.product_name}</div>
-            <div style="font-family: system-ui; font-size: 6px; font-weight: 500">${product.variant.n} - ${product.option.n}</div>
+            <div style="font-family: system-ui; font-size: 6px; font-weight: 500">${product.product_name}</div>
+            <div style="font-family: system-ui; font-size: 4px; font-weight: 500">${product.variant.n} - ${product.option.n}</div>
             <div>${list_modifier.join("")}</div>
   
-            <div style="font-size: 6px; position: fixed; bottom: 8px; right: 3px;">
+            <div style="font-size: 4px; position: fixed; bottom: 8px; right: 3px;">
               <span>${index + _index + 1}</span> / <span>${total_qty}</span>
             </div>
           </div>
         `,
-        data: {},
-        path: "/home/posinfinite/Documents/assets/sticker.pdf",
-        type: ""
-      }
-      await pdf.create(doc, options);
+          data: {},
+          path: "/home/posinfinite/Documents/assets/sticker.pdf",
+          type: ""
+        }
+        await pdf.create(doc, options);
 
-      const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
-      await obj.print('/home/posinfinite/Documents/assets/sticker.pdf');
+        const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
+        await obj.print('/home/posinfinite/Documents/assets/sticker.pdf');
+      }
     }
+
+    return true;
+  } catch (error) {
+    console.log(error);
+
+    return false;
+  }
+}
+
+app.post("/sticker", async (req, res) => {
+  try {
+    print_sticker(req);
+
+    return res.send("OK");
+  } catch (error) {
+    console.log(error);
+
+    return res.send(String(error));
   }
 })
 
 app.post("/push", (req, res) => {
-  console.log("post ::", req.body);
+  try {
+    console.log("post ::", req.body);
 
-  io.to("tc-connect").emit("tc-connect", req.body);
+    io.to("tc-connect").emit("tc-connect", req.body);
 
-  return res.send("sended");
+    return res.send("sended");
+  } catch (error) {
+    console.log(error);
+
+    return res.send(String(error));
+  }
 });
 
 io.on("connection", (socket) => {
