@@ -8,7 +8,8 @@ const port = process.env.PORT || 3700;
 const cors = require("cors");
 const logger = require("morgan");
 const cookieParser = require("cookie-parser");
-const pdf = require("pdf-creator-node")
+const pdf = require("pdf-creator-node");
+const ptp = require("pdf-to-printer");
 
 const { Printer } = require("./src/plugins/cups-printer/dist/printer");
 
@@ -44,37 +45,42 @@ async function print_sticker(req) {
     for (let index = 0; index < req.body.basket.length; index++) {
       const product = req.body.basket[index];
       const options = {
-        height: "1.2 in",
-        width: "1.5 in",
+        height: "1.6 in",
+        width: "2.2 in",
         orientation: "horizontal",
         border: "1mm"
       }
       const list_modifier = product.modifiers.map(_ => {
-        return `<div style="padding-left: 10px; font-size: 4px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
+        return `<div style="padding-left: 10px; font-size: 8px; font-family: system-ui;">⊙ ${_.type} - ${_.detail.name}</div>`
       });
 
       for (let _index = 0; _index < product.qty; _index++) {
         const doc = {
           html: `
           <div style="font-family: system-ui;">
-            <div style="font-size: 12px; font-weight: 600; padding-bottom: 2px;">${product.order_number}<div>
-            <div style="font-family: system-ui; font-size: 6px; font-weight: 500">${product.product_name}</div>
-            <div style="font-family: system-ui; font-size: 4px; font-weight: 500">${product.variant.n} - ${product.option.n}</div>
-            <div>${list_modifier.join("")}</div>
-  
-            <div style="font-size: 4px; position: fixed; bottom: 8px; right: 3px;">
-              <span>${index + _index + 1}</span> / <span>${total_qty}</span>
+            <div style="position: absolute; top: 10px; right: 0; font-size: 10px;">
+              ${index + _index + 1}/${total_qty}
             </div>
+            <div style="padding-top: 20px; font-size: 18px; font-weight: 600; padding-bottom: 2px;">${product.order_number}<div>
+            <div style="font-family: system-ui; font-size: 12px; font-weight: 500">${product.product_name}</div>
+            <div style="font-family: system-ui; font-size: 10px; font-weight: 500">${product.variant.n} - ${product.option.n}</div>
+            <div>${list_modifier.join("")}</div>
           </div>
         `,
           data: {},
-          path: "/home/posinfinite/Documents/assets/sticker.pdf",
+          path: "./sticker.pdf",
           type: ""
         }
         await pdf.create(doc, options);
 
-        const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
-        await obj.print('/home/posinfinite/Documents/assets/sticker.pdf');
+        await ptp.print("./sticker.pdf", {
+          printer: req.body.printer_name,
+          orientation: "landscape",
+          scale: "noscale",
+        });
+
+        // const obj = await Printer.find(x => x.name.startsWith(req.body.printer_name));
+        // await obj.print('./sticker.pdf');
       }
     }
 
