@@ -12,11 +12,15 @@
     "cups-printer": "^0.2.0",
     "debug": "~2.6.9",
     "express": "~4.16.1",
+    "global": "^4.4.0",
+    "html-pdf": "^3.0.1",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "morgan": "~1.9.1",
     "nib": "^1.1.2",
+    "nodemon": "^2.0.20",
     "pdf-creator-node": "^2.3.5",
+    "pdf-to-printer": "^5.4.0",
     "socket.io": "^4.4.0",
     "stylus": "^0.56.0"
   }
