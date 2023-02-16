@@ -66,8 +66,8 @@ app.post("/create-sticker", async (req, res) => {
         }
 
         product.name      = product.product_name;
-        product.options   = product.option.n;
-        product.variant   = product.variant.n;
+        product.options   = product.option.name;
+        product.variant   = product.variant.name;
         product.modifiers = modifiers;
       }
 
@@ -89,12 +89,13 @@ app.post("/create-sticker", async (req, res) => {
         console.log("modifier >> ", _)
         modifier_ids.push(_.id);
 
-        return `<div style="font-size: 8px; font-family: Arial, Helvetica, sans-serif;">⊙ ${_.type} - ${_.name}</div>`
+        return `<div style="font-size: 8px; font-family: Arial, Helvetica, sans-serif;">${_.qty} x ${_.type} - ${_.name}</div>`
       });
 
       for (let _index = 0; _index < product.qty; _index++) {
         page += 1;
         files.push({
+	        index,
           file : `${settings.pdf_path}${product.order_number}-${product.name}-${product.variant}-${product.options}-${modifier_ids.join("-")}-${index}-${_index}.pdf`,
           html : `
             <div style="font-weight: 500; font-family: Arial, Helvetica, sans-serif; height: 2.5cm;">
@@ -132,7 +133,7 @@ app.post("/create-sticker", async (req, res) => {
       }
     }
 
-    const file_results = files.map(_ => _.file);
+    const file_results = files.map(({ index, file }) => ({ index, file }));
 
     return res.json(file_results);
   } catch (error) {
