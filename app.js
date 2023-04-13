@@ -23,6 +23,7 @@ app.use(cookieParser());
 
 app.post("/create-trx", async (req, res) => {
   try {
+    console.log("created-at", new Date().toLocaleString());
     console.log(JSON.stringify(req.body, 0, 2));
   
     return res.send("OK");
