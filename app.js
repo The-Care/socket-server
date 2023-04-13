@@ -21,6 +21,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.post("/create-trx", async (req, res) => {
+  try {
+    console.log(JSON.stringify(req.body, 0, 2));
+  
+    return res.send("OK");
+  } catch (error) {
+    console.log(error);
+
+    return res.send("FAILED!")
+  }
+});
+
 app.post("/clean-sticker", async (req, res) => {
   try {
     const files = await fs.readdirSync(req.body.settings);
